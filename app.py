@@ -1,6 +1,6 @@
 import streamlit as st
 
-# --- MEMBER 1: FRONT-END & UI (DEMONSTRATION SHELL) ---
+
 st.set_page_config(
     page_title="Khwezi Mining Portal - UI Shell",
     page_icon="⚙️",
