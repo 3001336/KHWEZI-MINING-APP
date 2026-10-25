@@ -1,6 +1,6 @@
 import streamlit as st
 
-# --- MEMBER 1: FRONT-END & UI (DEMONSTRATION SHELL) ---
+
 st.set_page_config(
     page_title="Khwezi Mining Portal - UI Shell",
     page_icon="⚙️",
@@ -94,23 +94,3 @@ def render_main_interface():
             if tab_name == "Main KPI Dashboard":
                 st.subheader("Central Performance Indicators")
                 m1, m2, m3 = st.columns(3)
-                m1.metric("System Operational Status", "Online", "Demo")
-                m2.metric("Data Feed Latency", "12 ms", "Sample")
-                m3.metric("Active Safety Compliance", "96.5%", "+1.1%")
-                st.info("Dashboard shell loaded. KPI values are examples; backend telemetry integration is pending.")
-            else:
-                st.subheader(f"Module View: {tab_name}")
-                st.write(
-                    f"The structural layout for **{tab_name}** is visible under "
-                    f"**{tier}** demo permissions. Backend data hooks pending."
-                )
-
-
-# --- APP FLOW ROUTING ---
-if "auth_token" not in st.session_state:
-    st.session_state["auth_token"] = False
-
-if not st.session_state["auth_token"]:
-    render_access_gate()
-else:
-    render_main_interface()
