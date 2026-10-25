@@ -115,15 +115,14 @@ if not st.session_state["auth_token"]:
 else:
     render_main_interface()
 
-
 import streamlit as st
 import pandas as pd
 import altair as alt
 
-# KHWEZI MINING - DASHBOARD
+# KHWEZI MINING - COAL MINE DASHBOARD
 
 st.set_page_config(
-    page_title="Khwezi Mining",
+    page_title="Khwezi Mining | Coal Operations",
     page_icon="⛏️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -179,7 +178,7 @@ st.markdown("""
     color: #26313a;
 }
 
-/* BLACK LEFT SIDEBAR */
+/* COAL BLACK LEFT SIDEBAR */
 [data-testid="stSidebar"] {
     background:
         repeating-linear-gradient(
@@ -253,7 +252,7 @@ st.markdown("""
     color: white;
 }
 
-/* MINE HEADER */
+/* COAL-MINE HEADER */
 .mine-hero {
     position: relative;
     overflow: hidden;
@@ -415,7 +414,7 @@ def render_access_gate():
     st.markdown("""
     <div class="mine-hero">
         <div class="mine-eyebrow">
-            ⛏️ KHWEZI MINING 
+            ⛏️ KHWEZI MINING • COAL OPERATIONS
         </div>
         <div class="mine-title">
             Health, Safety &amp; Equipment Portal
@@ -434,9 +433,9 @@ def render_access_gate():
         "group to view the available modules."
     )
 
-  operator_id = st.text_input(
-    "Enter Staff Identification Number:"
-)
+    operator_id = st.text_input(
+        "Enter Staff Identification Number:"
+    )
 
     access_level = st.selectbox(
         "Select Clearance Group (Table 1):",
@@ -632,11 +631,11 @@ def render_main_interface():
 
         st.caption("KHWEZI MINING • COAL OPERATIONS")
 
-    # MINE BANNER
+    # COAL MINE BANNER
     st.markdown("""
     <div class="mine-hero">
         <div class="mine-eyebrow">
-            ⛏️ KHWEZI MINING 
+            ⛏️ KHWEZI MINING • COAL OPERATIONS
         </div>
         <div class="mine-title">
             Health, Safety &amp; Equipment Portal
@@ -789,42 +788,7 @@ if "auth_token" not in st.session_state:
 
 
 # APPLICATION ROUTING
-
-def render_access_gate():
-    st.markdown("### 🔐 Security & Access Control Gateway")
-    st.write(
-        "Enter a staff ID and select a demo clearance "
-        "group to view the available modules."
-    )
-
-    operator_id = st.text_input(
-        "Enter Staff Identification Number:",
-        key="khwezi_staff_id_unique"
-    )
-
-    access_level = st.selectbox(
-        "Select Clearance Group (Table 1):",
-        [
-            "Administrator",
-            "Safety Officer",
-            "Mining Engineer",
-            "Maintenance Engineer",
-            "Manager",
-        ],
-        key="khwezi_access_level_unique"
-    )
-
-    if st.button(
-        "Unlock Dashboard Interface",
-        key="khwezi_login_button_unique"
-    ):
-        if not operator_id.strip():
-            st.warning(
-                "Validation Error: Identification field "
-                "cannot be empty."
-            )
-        else:
-            st.session_state["auth_token"] = True
-            st.session_state["id_tag"] = operator_id.strip()
-            st.session_state["tier"] = access_level
-            st.rerun()
+if not st.session_state["auth_token"]:
+    render_access_gate()
+else:
+    render_main_interface()
