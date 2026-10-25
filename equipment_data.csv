@@ -1,0 +1,25 @@
+equipment_id,equipment_type,manufacturer,operating_hours,downtime_hours,temperature_c,vibration_mms,fuel_lph,brake_status,tyre_status,engine_status,maintenance_status,last_maintenance,next_maintenance,alerts_30d,location
+TRK-001,Haul Truck,Caterpillar,612,48,74.5,3.1,118,Good,Good,Good,Operational,2026-09-01,2026-10-31,0,Pit A
+TRK-002,Haul Truck,Komatsu,580,80,88.2,4.6,124,Good,Worn,Good,Operational,2026-08-17,2026-10-16,1,Pit A
+TRK-007,Haul Truck,Caterpillar,540,120,96.0,6.4,131,Worn,Worn,Good,Operational,2026-08-02,2026-10-08,3,Pit B
+TRK-012,Haul Truck,Komatsu,455,205,104.3,9.2,140,Worn,Fault,Worn,Operational,2026-07-08,2026-09-27,5,Pit B
+TRK-015,Haul Truck,Hitachi,630,30,71.0,2.8,112,Good,Good,Good,Operational,2026-09-21,2026-11-20,0,Pit A
+LDR-003,Loader,Caterpillar,590,70,79.0,4.9,85,Good,Good,Good,Operational,2026-09-11,2026-11-10,0,Pit A
+LDR-004,Loader,Volvo,520,140,91.5,5.8,92,Good,Worn,Worn,Under Maintenance,2026-08-12,2026-10-13,2,Stockpile
+LDR-009,Loader,Komatsu,605,55,76.4,3.5,80,Good,Good,Good,Operational,2026-09-16,2026-11-15,0,Stockpile
+EXC-001,Excavator,Hitachi,560,100,85.0,5.2,150,Good,N/A,Good,Operational,2026-08-27,2026-10-15,1,Pit A
+EXC-002,Excavator,Liebherr,498,170,101.7,7.9,158,Worn,N/A,Worn,Operational,2026-07-23,2026-10-03,4,Pit B
+EXC-005,Excavator,Komatsu,615,45,72.8,2.9,142,Good,N/A,Good,Operational,2026-09-26,2026-11-25,0,Pit B
+DRL-001,Drilling Machine,Epiroc,570,90,82.3,5.5,60,Good,Good,Good,Operational,2026-09-06,2026-10-17,1,Bench 3
+DRL-002,Drilling Machine,Sandvik,500,160,94.9,8.6,66,Good,Worn,Worn,Under Maintenance,2026-07-28,2026-10-10,4,Bench 3
+DRL-004,Drilling Machine,Epiroc,620,40,70.2,2.5,55,Good,Good,Good,Operational,2026-09-23,2026-11-18,0,Bench 1
+DOZ-001,Bulldozer,Caterpillar,575,85,83.6,4.4,105,Good,N/A,Good,Operational,2026-08-30,2026-10-29,1,Pit A
+DOZ-003,Bulldozer,Komatsu,530,130,97.4,6.9,110,Worn,N/A,Worn,Operational,2026-08-06,2026-10-06,3,Waste Dump
+SCW-001,Scraper Winch,Joy Global,600,60,68.5,3.3,0,Good,N/A,Good,Operational,2026-09-13,2026-11-12,0,Stope 12
+SCW-002,Scraper Winch,Joy Global,470,190,86.1,7.2,0,Fault,N/A,Worn,Operational,2026-07-13,2026-09-21,5,Stope 14
+CRS-001,Crusher,Metso,650,25,77.9,4.2,0,N/A,N/A,Good,Operational,2026-09-19,2026-11-05,0,Plant
+CRS-002,Crusher,Sandvik,505,150,99.2,8.4,0,N/A,N/A,Worn,Operational,2026-07-18,2026-10-01,4,Plant
+CNV-001,Conveyor,Siemens,660,18,62.4,2.2,0,N/A,N/A,Good,Operational,2026-09-29,2026-11-30,0,Plant
+CNV-002,Conveyor,Siemens,585,75,81.5,5.1,0,N/A,N/A,Good,Operational,2026-09-03,2026-10-14,1,Shaft 1
+CNV-003,Conveyor,Metso,545,115,90.8,6.1,0,N/A,N/A,Worn,Under Maintenance,2026-08-14,2026-10-12,2,Shaft 1
+LDR-011,Loader,Volvo,635,35,73.1,3.0,78,Good,Good,Good,Operational,2026-10-01,2026-11-30,0,Pit B
