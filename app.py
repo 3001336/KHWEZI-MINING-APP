@@ -120,10 +120,10 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 
-# KHWEZI MINING - COAL MINE DASHBOARD
+# KHWEZI MINING - DASHBOARD
 
 st.set_page_config(
-    page_title="Khwezi Mining | Coal Operations",
+    page_title="Khwezi Mining",
     page_icon="⛏️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -179,7 +179,7 @@ st.markdown("""
     color: #26313a;
 }
 
-/* COAL BLACK LEFT SIDEBAR */
+/* BLACK LEFT SIDEBAR */
 [data-testid="stSidebar"] {
     background:
         repeating-linear-gradient(
@@ -253,7 +253,7 @@ st.markdown("""
     color: white;
 }
 
-/* COAL-MINE HEADER */
+/* MINE HEADER */
 .mine-hero {
     position: relative;
     overflow: hidden;
@@ -415,7 +415,7 @@ def render_access_gate():
     st.markdown("""
     <div class="mine-hero">
         <div class="mine-eyebrow">
-            ⛏️ KHWEZI MINING • COAL OPERATIONS
+            ⛏️ KHWEZI MINING 
         </div>
         <div class="mine-title">
             Health, Safety &amp; Equipment Portal
@@ -632,11 +632,11 @@ def render_main_interface():
 
         st.caption("KHWEZI MINING • COAL OPERATIONS")
 
-    # COAL MINE BANNER
+    # MINE BANNER
     st.markdown("""
     <div class="mine-hero">
         <div class="mine-eyebrow">
-            ⛏️ KHWEZI MINING • COAL OPERATIONS
+            ⛏️ KHWEZI MINING 
         </div>
         <div class="mine-title">
             Health, Safety &amp; Equipment Portal
