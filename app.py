@@ -789,7 +789,42 @@ if "auth_token" not in st.session_state:
 
 
 # APPLICATION ROUTING
-if not st.session_state["auth_token"]:
-    render_access_gate()
-else:
-    render_main_interface()
+
+def render_access_gate():
+    st.markdown("### 🔐 Security & Access Control Gateway")
+    st.write(
+        "Enter a staff ID and select a demo clearance "
+        "group to view the available modules."
+    )
+
+    operator_id = st.text_input(
+        "Enter Staff Identification Number:",
+        key="khwezi_staff_id_unique"
+    )
+
+    access_level = st.selectbox(
+        "Select Clearance Group (Table 1):",
+        [
+            "Administrator",
+            "Safety Officer",
+            "Mining Engineer",
+            "Maintenance Engineer",
+            "Manager",
+        ],
+        key="khwezi_access_level_unique"
+    )
+
+    if st.button(
+        "Unlock Dashboard Interface",
+        key="khwezi_login_button_unique"
+    ):
+        if not operator_id.strip():
+            st.warning(
+                "Validation Error: Identification field "
+                "cannot be empty."
+            )
+        else:
+            st.session_state["auth_token"] = True
+            st.session_state["id_tag"] = operator_id.strip()
+            st.session_state["tier"] = access_level
+            st.rerun()
