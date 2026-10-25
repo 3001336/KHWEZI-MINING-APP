@@ -434,9 +434,9 @@ def render_access_gate():
         "group to view the available modules."
     )
 
-    operator_id = st.text_input(
-        "Enter Staff Identification Number:"
-    )
+  operator_id = st.text_input(
+    "Enter Staff Identification Number:"
+)
 
     access_level = st.selectbox(
         "Select Clearance Group (Table 1):",
