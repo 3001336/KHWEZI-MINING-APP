@@ -434,9 +434,9 @@ def render_access_gate():
     )
 
     operator_id = st.text_input(
-        "Enter Staff Identification Number:"
-    )
-
+    "Enter Staff Identification Number:",
+    key="khwezi_staff_id"
+)
     access_level = st.selectbox(
         "Select Clearance Group (Table 1):",
         [
