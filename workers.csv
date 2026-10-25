@@ -1,0 +1,7 @@
+WorkerID,Department,JobRole,Shift,PPECompliance,SafetyTraining,FatigueLevel,SafetyObservations,NearMisses,PreviousIncidents
+W001,Mining,Rock Drill Operator,Day,Yes,Yes,2,1,0,0
+W002,Mining,LHD Operator,Night,Yes,Yes,4,2,1,0
+W003,Engineering,Artisan,Day,No,Yes,3,2,1,1
+W004,Mining,Winch Operator,Night,Yes,No,5,3,2,1
+W005,Safety,Safety Officer,Day,Yes,Yes,2,0,0,0
+W006,Mining,Miner,Night,Yes,Yes,1,0,0,0

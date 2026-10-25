@@ -1,0 +1,22 @@
+{
+    "admin": {
+        "password": "admin123",
+        "role": "Administrator"
+    },
+    "safety": {
+        "password": "safety123",
+        "role": "Safety Officer"
+    },
+    "mining": {
+        "password": "mining123",
+        "role": "Mining Engineer"
+    },
+    "maintenance": {
+        "password": "maint123",
+        "role": "Maintenance Engineer"
+    },
+    "manager": {
+        "password": "manager123",
+        "role": "Manager"
+    }
+}
