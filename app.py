@@ -172,30 +172,61 @@ st.markdown("""
 
 # OPEN PIT MINING SUNSET BACKGROUND
 
-image_path = BASE / "mining_sunset.jpg"
+image_path = BASE / "mining_sunset.png"
 
-if image_path.is_file():
-
+if image_path.exists():
     image_data = base64.b64encode(
         image_path.read_bytes()
-    ).decode("ascii")
+    ).decode("utf-8")
 
     st.markdown(
         f"""
-        <style>
-        .mine-hero {{
-            background-image:
-                linear-gradient(
-                    90deg,
-                    rgba(10,17,23,.89),
-                    rgba(10,17,23,.16)
-                ),
-                url('data:image/jpeg;base64,{image_data}');
-        }}
-        </style>
-        """,
+<style>
+.mine-hero {{
+    background-image:
+        linear-gradient(
+            90deg,
+            rgba(10, 17, 23, 0.90) 0%,
+            rgba(10, 17, 23, 0.65) 48%,
+            rgba(10, 17, 23, 0.20) 100%
+        ),
+        url("data:image/png;base64,{image_data}") !important;
+
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+
+    min-height: 300px;
+    padding: 45px 35px;
+    border-radius: 18px;
+    border-left: 7px solid #d9a435;
+}}
+
+.mine-title {{
+    color: white !important;
+    font-size: 36px !important;
+    font-weight: 800 !important;
+    text-shadow: 2px 3px 6px black;
+}}
+
+.mine-eyebrow {{
+    color: #ffbf47 !important;
+    font-weight: bold;
+    letter-spacing: 2px;
+}}
+
+.mine-subtitle {{
+    color: white !important;
+    font-size: 17px;
+    font-weight: 500;
+}}
+</style>
+""",
         unsafe_allow_html=True
     )
+else:
+    st.warning("Mining sunset image not found.")
+
 
 # MAIN MINING BANNER
   
