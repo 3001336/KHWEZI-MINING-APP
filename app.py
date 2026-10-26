@@ -107,6 +107,7 @@ st.markdown("""
  
 # KHWEZI MINING - MAIN SUNSET BANNER
 
+
 def show_banner():
 
     st.markdown(
@@ -139,6 +140,7 @@ def show_banner():
         """,
         unsafe_allow_html=True
     )
+
 
  
  [data-testid="stMain"] .block-container {
