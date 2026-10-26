@@ -1240,7 +1240,9 @@ def render_worker_page(role):
             st.success("Worker safety record saved successfully.")
             st.rerun()
 
+
 # EQUIPMENT MODULE
+
 def render_equipment_page(role):
 
     if import_render(
@@ -1252,11 +1254,8 @@ def render_equipment_page(role):
 
     equipment, stats = load_equipment()
 
-    st.subheader(
-        " Equipment Monitoring"
-    )
+    st.subheader("Equipment Monitoring")
 
-   def render_equipment_page(role):
     if equipment is None:
         st.warning("Equipment data not found.")
         return
@@ -1266,6 +1265,7 @@ def render_equipment_page(role):
         use_container_width=True,
         hide_index=True
     )
+
 
     if stats:
 
