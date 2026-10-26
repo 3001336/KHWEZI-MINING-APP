@@ -1,154 +1,91 @@
+
 import streamlit as st
 import pandas as pd
 import altair as alt
+import base64
 import importlib
+import sqlite3
+
 from pathlib import Path
+from contextlib import contextmanager
 
-# IMPORTANT: Each team member owns a separate .py file.
-# Each file must define a render_... function that takes role as input.
-# No st.set_page_config(), login, or app execution inside member files.
+# =====================================================
+# KHWEZI MINING - COMPLETE APPLICATION
+# =====================================================
+
 BASE = Path(__file__).resolve().parent
+DATABASE = BASE / "safety_incidents.db"
 
-MEMBER_MODULES = {
-    "Worker Safety Logs": ("person1_worker_safety_module", "render_worker_safety"),
-    "Incident Reports": ("safety_incidents", "render_incident_reports"),
-    "Risk Matrix": ("risk_assessment", "render_risk_assessment"),
-    "Equipment Telemetry": ("equipment_page", "render_equipment_module"),
-    "Maintenance Schedules": ("equipment_page", "render_equipment_module"),
-    "Equipment Database": ("equipment_page", "render_equipment_module"),
-    "Condition Monitoring": ("equipment_page", "render_equipment_module"),
-    "Equipment Alerts": ("equipment_page", "render_equipment_module"),
-    "Equipment Analysis": ("equipment_page", "render_equipment_module"),
-    "Operational Reports": ("person4_dashboard", "render_dashboard"),
-    "User Control Panel": ("user_control", "render_user_control"),
+SAFETY_ROLES = {
+    "Administrator",
+    "Safety Officer",
+    "Mining Engineer",
+    "Manager"
 }
 
+EQUIPMENT_ROLES = {
+    "Administrator",
+    "Mining Engineer",
+    "Maintenance Engineer",
+    "Manager"
+}
 
-def render_member_page(page_name, role):
-    """Call one person's code without breaking the rest of the application."""
-    filename, function_name = MEMBER_MODULES[page_name]
-    if not (BASE / f"{filename}.py").exists():
-        st.info(f"{page_name} is not connected yet. Upload {filename}.py to GitHub.")
-        st.code(f"def {function_name}(role):\n    st.title('{page_name}')")
-        return
-    try:
-        module = importlib.import_module(filename)
-        function = getattr(module, function_name, None)
-        if function is None or not callable(function):
-            st.error(f"{filename}.py must define {function_name}(role).")
-            return
-        function(role)
-    except Exception as exc:
-        st.error(f"Error in {filename}.py: {exc}")
-        st.exception(exc)
+FIELDS = [
+    "incident_date",
+    "incident_time",
+    "shift",
+    "location",
+    "department",
+    "incident_type",
+    "category",
+    "severity",
+    "injury_status",
+    "lost_time_status",
+    "cause",
+    "corrective_action",
+    "incident_status",
+    "likelihood",
+    "consequence",
+    "risk_score",
+    "risk_classification"
+]
 
-
-def load_equipment_summary():
-    try:
-        em = importlib.import_module("equipment_module")
-        data = em.prepare(em.load_equipment())
-        alerts = em.generate_alerts(data)
-        stats = em.equipment_kpis(data, alerts)
-        return data, stats
-    except Exception:
-        return None, None
-
-
-def load_worker_count():
-    try:
-        worker_module = importlib.import_module("person1_worker_safety_module")
-        return len(worker_module.load_workers())
-    except Exception:
-        return None
-
-
-# KHWEZI MINING - COAL MINE DASHBOARD
+# =====================================================
+# STREAMLIT PAGE CONFIGURATION
+# =====================================================
 
 st.set_page_config(
-    page_title="Khwezi Mining | Coal Operations",
+    page_title="KHWEZI MINING | Health, Safety & Equipment",
     page_icon="⛏️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
+# =====================================================
 # COAL MINING COLOURS AND DESIGN
+# =====================================================
+
 st.markdown("""
 <style>
-:root {
-    --coal: #171d23;
-    --coal-deep: #10151b;
-    --coal-mid: #27333b;
-    --gold: #d9a435;
-    --gold-light: #f1c86e;
-    --copper: #ad7041;
-    --stone: #f6f3ec;
-    --ink: #26313a;
-}
 
-/* MAIN BACKGROUND */
 [data-testid="stAppViewContainer"] {
-    background:
-        radial-gradient(
-            circle at 93% 8%,
-            #f7ebc9 0%,
-            transparent 31%
-        ),
-        linear-gradient(
-            115deg,
-            #f7f3eb 0%,
-            #fffdfa 49%,
-            #edf1ee 100%
-        );
+    background: linear-gradient(
+        110deg,
+        #f7f3eb,
+        #fffdfa 50%,
+        #edf1ee
+    );
 }
 
-[data-testid="stHeader"] {
-    background: rgba(248,246,241,0.92);
-}
-
-[data-testid="stMain"] .block-container {
-    max-width: 1400px;
-    padding-top: 1.8rem;
-    padding-bottom: 3rem;
-}
-
-/* FIX TEXT VISIBILITY */
-[data-testid="stMain"] h1,
-[data-testid="stMain"] h2,
-[data-testid="stMain"] h3,
-[data-testid="stMain"] h4,
-[data-testid="stMain"] p,
-[data-testid="stMain"] label {
-    color: #26313a;
-}
-
-/* COAL BLACK LEFT SIDEBAR */
 [data-testid="stSidebar"] {
-    background:
-        repeating-linear-gradient(
-            168deg,
-            transparent 0px,
-            transparent 28px,
-            rgba(255,255,255,0.025) 29px,
-            rgba(255,255,255,0.025) 31px
-        ),
-        linear-gradient(
-            170deg,
-            #12171e 0%,
-            #27313a 65%,
-            #151b22 100%
-        );
+    background: linear-gradient(
+        165deg,
+        #111820,
+        #29343c 65%,
+        #151c23
+    );
+
     border-right: 4px solid #d9a435;
-}
-
-@media (min-width: 900px) {
-    [data-testid="stSidebar"] {
-        min-width: 305px !important;
-        width: 305px !important;
-    }
-
-    [data-testid="stSidebar"] > div {
-        width: 305px !important;
-    }
 }
 
 [data-testid="stSidebar"] h1,
@@ -162,274 +99,1241 @@ st.markdown("""
     color: #f6f0e2 !important;
 }
 
-/* NAVIGATION DROPDOWN */
 [data-testid="stSidebar"]
-[data-baseweb="select"] > div {
-    background: #fffdf7;
-    border: 1px solid #ba9044;
-    border-radius: 9px;
-    color: #202932;
+[data-baseweb="select"] * {
+    color: #26313a !important;
 }
 
-[data-testid="stSidebar"]
-[data-baseweb="select"] span {
-    color: #202932 !important;
+[data-testid="stMetric"] {
+    background: white;
+    border-left: 6px solid #d9a435;
+    border-radius: 14px;
+    padding: 18px;
+
+    box-shadow:
+        0 6px 16px rgba(25,34,39,.09);
 }
 
-/* GOLD LOGOUT BUTTON */
-[data-testid="stSidebar"] .stButton button {
+.mine-hero {
+    border-radius: 15px;
+    padding: 27px 30px;
+    margin-bottom: 18px;
+    min-height: 195px;
+
+    border-left: 7px solid #d9a435;
+
     background: linear-gradient(
         110deg,
-        #f1c767,
-        #d6a033
+        #121820,
+        #29343c,
+        #3b3326
     );
-    border: 1px solid #bd8c2c;
-    border-radius: 9px;
-    color: #192128;
-    font-weight: 700;
-    padding: 0.55rem 1.2rem;
-}
 
-[data-testid="stSidebar"] .stButton button:hover {
-    background: #ad7041;
-    color: white;
-}
-
-/* COAL-MINE HEADER */
-.mine-hero {
-    position: relative;
-    overflow: hidden;
-    border-radius: 15px;
-    padding: 23px 28px;
-    margin-bottom: 20px;
-    background:
-        repeating-linear-gradient(
-            166deg,
-            transparent 0,
-            transparent 25px,
-            rgba(255,255,255,0.035) 26px,
-            rgba(255,255,255,0.035) 28px
-        ),
-        linear-gradient(
-            107deg,
-            #121820 0%,
-            #29343c 73%,
-            #3b3326 100%
-        );
-    border-left: 7px solid #d9a435;
-    box-shadow: 0 8px 20px rgba(26,29,32,0.15);
+    background-position: center;
+    background-size: cover;
 }
 
 .mine-eyebrow {
     color: #ebbb54;
-    font-size: 0.83rem;
     font-weight: 800;
-    letter-spacing: 0.14em;
+    letter-spacing: .12em;
 }
 
 .mine-title {
     color: white !important;
     font-size: 2rem;
     font-weight: 800;
-    line-height: 1.22;
-    margin-top: 5px;
+    text-shadow: 0 2px 5px #000;
+    margin: 8px 0;
 }
 
 .mine-subtitle {
-    color: #e5ded0 !important;
-    font-size: 0.95rem;
-    margin-top: 8px;
-}
-
-.mine-school {
-    margin-bottom: 5px;
-    font-weight: 750;
-    color: #28343b;
-}
-
-.mine-intro {
-    font-style: italic;
-    color: #57616a;
-    margin-bottom: 23px;
+    color: #f0e9d9 !important;
+    text-shadow: 0 1px 4px #000;
 }
 
 .mine-section {
-    font-size: 1.55rem;
-    font-weight: 800;
     color: #242f36;
-    margin: 29px 0 12px;
-}
-
-/* FOUR DASHBOARD KPI CARDS */
-[data-testid="stMetric"] {
-    background: white;
-    border-left: 6px solid #d9a435;
-    border-radius: 15px;
-    padding: 18px 17px;
-    min-height: 141px;
-    box-shadow: 0 6px 16px rgba(27,33,36,0.09);
-}
-
-[data-testid="stMetricLabel"] p {
-    color: #58636a !important;
-    font-size: 0.88rem;
-}
-
-[data-testid="stMetricValue"] {
-    color: #263139 !important;
-    font-weight: 780;
+    font-size: 1.45rem;
+    font-weight: 800;
+    margin: 22px 0 12px;
 }
 
 .guide-banner {
     background: #f5e9d0;
     border-left: 4px solid #d9a435;
-    color: #665125;
+    padding: 14px;
     border-radius: 9px;
-    padding: 16px 18px;
-    margin: 18px 0 20px;
+    margin: 14px 0;
 }
 
-/* EQUIPMENT CHART */
-[data-testid="stVerticalBlockBorderWrapper"] {
-    background: white;
-    border-radius: 13px;
-    border-color: #e7dfd0;
-}
-
-@media (max-width: 750px) {
+@media(max-width:750px) {
     .mine-title {
         font-size: 1.4rem;
     }
-
-    .mine-hero {
-        padding: 19px;
-    }
 }
+
 </style>
 """, unsafe_allow_html=True)
 
+# =====================================================
+# OPEN PIT MINING SUNSET BACKGROUND
+# =====================================================
 
-# DEMONSTRATION DATA
-# REPLACE WITH ACTUAL MINING RECORDS WHEN AVAILABLE
+image_path = BASE / "mining_sunset.jpg"
 
-DEMO_KPIS = {
-    "total_workers": 142,
-    "safety_incidents": 3,
-    "equipment_availability": 96.6,
-    "critical_alerts": 1
-}
+if image_path.is_file():
 
-DEMO_EQUIPMENT = pd.DataFrame({
-    "Equipment_ID": [
-        "EQ-101",
-        "EQ-102",
-        "EQ-103",
-        "EQ-104",
-        "EQ-105"
-    ],
-    "Equipment": [
-        "Haul Truck",
-        "Excavator",
-        "Loader",
-        "Drill Rig",
-        "Dozer"
-    ],
-    "Availability": [
-        99.0,
-        97.8,
-        98.1,
-        94.8,
-        93.3
-    ],
-    "Condition": [
-        "Operational",
-        "Operational",
-        "Operational",
-        "Attention",
-        "Critical"
-    ]
-})
+    image_data = base64.b64encode(
+        image_path.read_bytes()
+    ).decode("ascii")
 
+    st.markdown(
+        f"""
+        <style>
+        .mine-hero {{
+            background-image:
+                linear-gradient(
+                    90deg,
+                    rgba(10,17,23,.89),
+                    rgba(10,17,23,.16)
+                ),
+                url('data:image/jpeg;base64,{image_data}');
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
-# ORIGINAL LOGIN INTERFACE
-def render_access_gate():
+# =====================================================
+# MAIN MINING BANNER
+# =====================================================
 
-    st.markdown("""
-    <div class="mine-hero">
-        <div class="mine-eyebrow">
-            ⛏️ KHWEZI MINING • COAL OPERATIONS
+def show_banner():
+
+    st.markdown(
+        """
+        <div class="mine-hero">
+
+            <div class="mine-eyebrow">
+                ⛏️ KHWEZI MINING • COAL OPERATIONS
+            </div>
+
+            <div class="mine-title">
+                Health, Safety &amp; Equipment Portal
+            </div>
+
+            <div class="mine-subtitle">
+                Operational Monitoring •
+                Worker Safety • Mine Equipment
+            </div>
+
         </div>
-        <div class="mine-title">
-            Health, Safety &amp; Equipment Portal
-        </div>
-        <div class="mine-subtitle">
+
+        <div style="font-weight:700">
             School of Mining Engineering |
             University of the Witwatersrand
         </div>
-    </div>
-    """, unsafe_allow_html=True)
 
-    st.subheader("🔐 Security & Access Control Gateway")
-
-    st.write(
-        "Enter a staff ID and select a demo clearance "
-        "group to view the available modules."
+        <p>
+            <i>
+                A centralized digital monitoring platform
+                for operational decision-making.
+            </i>
+        </p>
+        """,
+        unsafe_allow_html=True
     )
 
-    operator_id = st.text_input(
-    "Enter Staff Identification Number:",
-    key="khwezi_staff_id"
-)
-    access_level = st.selectbox(
-        "Select Clearance Group (Table 1):",
-        [
-            "Administrator",
-            "Safety Officer",
-            "Mining Engineer",
-            "Maintenance Engineer",
-            "Manager"
-        ]
+# =====================================================
+# RISK ASSESSMENT CALCULATION
+# =====================================================
+
+def assess_risk(likelihood, consequence):
+
+    if not (
+        isinstance(likelihood, int)
+        and isinstance(consequence, int)
+        and not isinstance(likelihood, bool)
+        and not isinstance(consequence, bool)
+        and 1 <= likelihood <= 5
+        and 1 <= consequence <= 5
+    ):
+        raise ValueError(
+            "Likelihood and consequence must "
+            "be whole numbers from 1 to 5."
+        )
+
+    score = likelihood * consequence
+
+    if score <= 4:
+        classification = "Low"
+
+    elif score <= 9:
+        classification = "Medium"
+
+    elif score <= 16:
+        classification = "High"
+
+    else:
+        classification = "Critical"
+
+    return score, classification
+
+# =====================================================
+# DATABASE CONNECTION
+# =====================================================
+
+@contextmanager
+def connect_db():
+
+    connection = sqlite3.connect(
+        str(DATABASE),
+        timeout=15
     )
 
-    if st.button("Unlock Dashboard Interface"):
+    try:
+        yield connection
+        connection.commit()
 
-        if not operator_id.strip():
+    except Exception:
+        connection.rollback()
+        raise
+
+    finally:
+        connection.close()
+
+# =====================================================
+# CREATE SAFETY INCIDENT DATABASE
+# =====================================================
+
+def setup_incidents():
+
+    with connect_db() as conn:
+
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS incidents (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            incident_date TEXT NOT NULL,
+            incident_time TEXT,
+            shift TEXT,
+            location TEXT,
+            department TEXT,
+            incident_type TEXT,
+            category TEXT,
+            severity TEXT,
+            injury_status TEXT,
+            lost_time_status TEXT,
+            cause TEXT,
+            corrective_action TEXT,
+            incident_status TEXT,
+
+            likelihood INTEGER,
+            consequence INTEGER,
+            risk_score INTEGER,
+            risk_classification TEXT
+        )
+        """)
+
+        csv_path = next(
+            (
+                BASE / name
+                for name in (
+                    "safety_incidents.csv",
+                    "safety_incidents(2).csv"
+                )
+                if (BASE / name).is_file()
+            ),
+            None
+        )
+
+        if csv_path is None:
+            return
+
+        source = pd.read_csv(
+            csv_path,
+            dtype=str,
+            keep_default_na=False
+        )
+
+        missing = set(FIELDS) - set(source.columns)
+
+        if missing:
+
             st.warning(
-                "Validation Error: Identification field "
-                "cannot be empty."
+                "Incident CSV is missing columns: "
+                + ", ".join(sorted(missing))
+            )
+
+            return
+
+        existing = set(
+            conn.execute("""
+                SELECT
+                    incident_date,
+                    incident_time,
+                    department,
+                    incident_type,
+                    location
+                FROM incidents
+            """).fetchall()
+        )
+
+        sql = (
+            f"INSERT INTO incidents "
+            f"({', '.join(FIELDS)}) "
+            f"VALUES ({', '.join(['?'] * len(FIELDS))})"
+        )
+
+        for _, row in source.iterrows():
+
+            key = tuple(
+                str(row[field]).strip()
+                for field in (
+                    "incident_date",
+                    "incident_time",
+                    "department",
+                    "incident_type",
+                    "location"
+                )
+            )
+
+            if key in existing:
+                continue
+
+            try:
+
+                score, level = assess_risk(
+                    int(row["likelihood"]),
+                    int(row["consequence"])
+                )
+
+            except (ValueError, TypeError):
+                continue
+
+            values = {
+                field: str(row[field]).strip()
+                for field in FIELDS
+            }
+
+            values["risk_score"] = score
+            values["risk_classification"] = level
+
+            conn.execute(
+                sql,
+                [values[field] for field in FIELDS]
+            )
+
+            existing.add(key)
+
+# =====================================================
+# LOAD ALL INCIDENT RECORDS
+# =====================================================
+
+def get_incidents():
+
+    setup_incidents()
+
+    with connect_db() as conn:
+
+        records = pd.read_sql_query(
+            """
+            SELECT *
+            FROM incidents
+            ORDER BY id DESC
+            """,
+            conn
+        )
+
+    return records
+
+# =====================================================
+# SAVE NEW INCIDENT
+# =====================================================
+
+def save_incident(record):
+
+    setup_incidents()
+
+    score, classification = assess_risk(
+        int(record["likelihood"]),
+        int(record["consequence"])
+    )
+
+    record["risk_score"] = score
+    record["risk_classification"] = classification
+
+    sql = (
+        f"INSERT INTO incidents "
+        f"({', '.join(FIELDS)}) "
+        f"VALUES ({', '.join(['?'] * len(FIELDS))})"
+    )
+
+    with connect_db() as conn:
+
+        conn.execute(
+            sql,
+            [record[field] for field in FIELDS]
+        )
+
+# =====================================================
+# SAFETY INCIDENT REPORTING PAGE
+# =====================================================
+
+def render_incident_reports(role):
+
+    if role not in SAFETY_ROLES:
+
+        st.error(
+            "You do not have permission "
+            "to view safety incidents."
+        )
+
+        return
+
+    st.subheader(
+        "🦺 Safety Incident Reporting and Analysis"
+    )
+
+    st.caption(
+        "Educational incident dataset and locally "
+        "saved records. Not live mine data."
+    )
+
+    records = get_incidents()
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    c1.metric(
+        "Total Incidents",
+        len(records)
+    )
+
+    c2.metric(
+        "Near Misses",
+        int(
+            records["category"].eq(
+                "Near Miss"
+            ).sum()
+        )
+    )
+
+    c3.metric(
+        "High Risks",
+        int(
+            records["risk_classification"].eq(
+                "High"
+            ).sum()
+        )
+    )
+
+    c4.metric(
+        "Critical Risks",
+        int(
+            records["risk_classification"].eq(
+                "Critical"
+            ).sum()
+        )
+    )
+
+    tab1, tab2, tab3 = st.tabs([
+        "View & Filter",
+        "Add Incident",
+        "Charts & Reports"
+    ])
+
+    # -------------------------------------------------
+    # VIEW AND FILTER INCIDENTS
+    # -------------------------------------------------
+
+    with tab1:
+
+        search = st.text_input(
+            "Search incident ID, location, "
+            "department or incident type"
+        )
+
+        department = st.selectbox(
+            "Department",
+            ["All"] + sorted(
+                records["department"]
+                .dropna()
+                .unique()
+                .tolist()
+            )
+        )
+
+        risk = st.selectbox(
+            "Risk Classification",
+            [
+                "All",
+                "Low",
+                "Medium",
+                "High",
+                "Critical"
+            ]
+        )
+
+        status = st.selectbox(
+            "Incident Status",
+            ["All"] + sorted(
+                records["incident_status"]
+                .dropna()
+                .unique()
+                .tolist()
+            )
+        )
+
+        filtered = records.copy()
+
+        if search:
+
+            keyword = search.casefold().strip()
+
+            matches = filtered[
+                [
+                    "id",
+                    "location",
+                    "department",
+                    "incident_type"
+                ]
+            ].astype(str).apply(
+                lambda column:
+                column.str.casefold().str.contains(
+                    keyword,
+                    regex=False
+                )
+            ).any(axis=1)
+
+            filtered = filtered.loc[matches]
+
+        if department != "All":
+
+            filtered = filtered.loc[
+                filtered["department"] == department
+            ]
+
+        if risk != "All":
+
+            filtered = filtered.loc[
+                filtered["risk_classification"] == risk
+            ]
+
+        if status != "All":
+
+            filtered = filtered.loc[
+                filtered["incident_status"] == status
+            ]
+
+        st.dataframe(
+            filtered,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        st.download_button(
+            "Download Filtered Incidents",
+            filtered.to_csv(index=False),
+            file_name="filtered_incidents.csv",
+            mime="text/csv"
+        )
+
+    # -------------------------------------------------
+    # ADD NEW SAFETY INCIDENT
+    # -------------------------------------------------
+
+    with tab2:
+
+        with st.form(
+            "incident_input",
+            clear_on_submit=True
+        ):
+
+            a, b, c = st.columns(3)
+
+            incident_date = a.date_input(
+                "Incident Date"
+            )
+
+            incident_time = b.time_input(
+                "Incident Time"
+            )
+
+            shift = c.selectbox(
+                "Shift",
+                [
+                    "Day",
+                    "Afternoon",
+                    "Night"
+                ]
+            )
+
+            a, b = st.columns(2)
+
+            location = a.text_input(
+                "Location *"
+            )
+
+            department = b.text_input(
+                "Department *"
+            )
+
+            incident_type = st.text_input(
+                "Incident Type *"
+            )
+
+            a, b, c = st.columns(3)
+
+            category = a.selectbox(
+                "Category",
+                [
+                    "Injury",
+                    "Near Miss",
+                    "Unsafe Act",
+                    "Other"
+                ]
+            )
+
+            severity = b.selectbox(
+                "Severity",
+                [
+                    "Minor",
+                    "Moderate",
+                    "Major",
+                    "Critical"
+                ]
+            )
+
+            incident_status = c.selectbox(
+                "Incident Status",
+                [
+                    "Open",
+                    "Under Review",
+                    "Closed"
+                ]
+            )
+
+            a, b = st.columns(2)
+
+            injury_status = a.selectbox(
+                "Was Anyone Injured?",
+                ["No", "Yes"]
+            )
+
+            lost_time_status = b.selectbox(
+                "Lost-Time Injury?",
+                ["No", "Yes"]
+            )
+
+            cause = st.text_area(
+                "Cause of Incident"
+            )
+
+            corrective_action = st.text_area(
+                "Corrective Action"
+            )
+
+            a, b = st.columns(2)
+
+            likelihood = a.number_input(
+                "Likelihood",
+                1,
+                5,
+                3,
+                step=1
+            )
+
+            consequence = b.number_input(
+                "Consequence",
+                1,
+                5,
+                3,
+                step=1
+            )
+
+            submit = st.form_submit_button(
+                "Save Incident"
+            )
+
+        if submit:
+
+            if not all([
+                location.strip(),
+                department.strip(),
+                incident_type.strip()
+            ]):
+
+                st.error(
+                    "Location, department and "
+                    "incident type are required."
+                )
+
+            else:
+
+                new_incident = {
+                    "incident_date":
+                        incident_date.isoformat(),
+
+                    "incident_time":
+                        incident_time.strftime("%H:%M"),
+
+                    "shift": shift,
+
+                    "location":
+                        location.strip(),
+
+                    "department":
+                        department.strip(),
+
+                    "incident_type":
+                        incident_type.strip(),
+
+                    "category": category,
+
+                    "severity": severity,
+
+                    "injury_status": injury_status,
+
+                    "lost_time_status":
+                        lost_time_status,
+
+                    "cause":
+                        cause.strip(),
+
+                    "corrective_action":
+                        corrective_action.strip(),
+
+                    "incident_status":
+                        incident_status,
+
+                    "likelihood":
+                        int(likelihood),
+
+                    "consequence":
+                        int(consequence)
+                }
+
+                save_incident(new_incident)
+
+                st.success(
+                    "Safety incident saved successfully."
+                )
+
+                st.rerun()
+
+    # -------------------------------------------------
+    # INCIDENT ANALYSIS
+    # -------------------------------------------------
+
+    with tab3:
+
+        if records.empty:
+
+            st.info(
+                "No incident records available."
             )
 
         else:
-            st.session_state["auth_token"] = True
-            st.session_state["id_tag"] = operator_id.strip()
-            st.session_state["tier"] = access_level
-            st.rerun()
 
+            a, b = st.columns(2)
 
-# ORIGINAL ROLE PERMISSIONS
-def permitted_modules(tier):
+            with a:
 
-    choices = ["View Dashboard"]
+                st.markdown(
+                    "**Incidents by Department**"
+                )
 
-    if tier in [
-        "Administrator",
-        "Safety Officer",
-        "Mining Engineer",
-        "Manager"
-    ]:
-        choices.extend([
+                st.bar_chart(
+                    records["department"].value_counts()
+                )
+
+            with b:
+
+                st.markdown(
+                    "**Incidents by Risk Classification**"
+                )
+
+                st.bar_chart(
+                    records[
+                        "risk_classification"
+                    ].value_counts()
+                )
+
+            monthly = records.copy()
+
+            monthly["Month"] = pd.to_datetime(
+                monthly["incident_date"],
+                errors="coerce"
+            ).dt.to_period("M").astype(str)
+
+            st.markdown(
+                "**Monthly Incident Trend**"
+            )
+
+            st.line_chart(
+                monthly.groupby("Month").size()
+            )
+
+            st.download_button(
+                "Download All Incident Records",
+                records.to_csv(index=False),
+                file_name="khwezi_incidents.csv",
+                mime="text/csv"
+            )
+
+# =====================================================
+# RISK ASSESSMENT PAGE
+# =====================================================
+
+def render_risk_assessment(role):
+
+    if role not in SAFETY_ROLES:
+
+        st.error(
+            "Access denied."
+        )
+
+        return
+
+    st.subheader(
+        "⚠️ Mining Risk Assessment"
+    )
+
+    st.caption(
+        "Risk Score = Likelihood × Consequence. "
+        "Educational prototype only."
+    )
+
+    c1, c2 = st.columns(2)
+
+    likelihood = c1.number_input(
+        "Likelihood (1–5)",
+        1,
+        5,
+        3,
+        key="risk_likelihood"
+    )
+
+    consequence = c2.number_input(
+        "Consequence (1–5)",
+        1,
+        5,
+        3,
+        key="risk_consequence"
+    )
+
+    score, classification = assess_risk(
+        int(likelihood),
+        int(consequence)
+    )
+
+    st.metric(
+        "Risk Score",
+        f"{score}/25"
+    )
+
+    if classification == "Critical":
+
+        st.error(
+            "CRITICAL — Apply controls and "
+            "escalate immediately."
+        )
+
+    elif classification == "High":
+
+        st.warning(
+            "HIGH — Corrective action and "
+            "management review needed."
+        )
+
+    elif classification == "Medium":
+
+        st.info(
+            "MEDIUM — Apply controls "
+            "and continue monitoring."
+        )
+
+    else:
+
+        st.success(
+            "LOW — Maintain existing controls."
+        )
+
+    st.write(
+        f"**Classification: {classification}**"
+    )
+
+    # COMPLETE RISK MATRIX
+
+    st.markdown(
+        "#### Complete 5 × 5 Risk Matrix"
+    )
+
+    matrix = pd.DataFrame(
+        {
+            f"Consequence {c}": [
+                f"{assess_risk(l, c)[0]}: "
+                f"{assess_risk(l, c)[1]}"
+
+                for l in range(1, 6)
+            ]
+
+            for c in range(1, 6)
+        },
+
+        index=[
+            f"Likelihood {l}"
+            for l in range(1, 6)
+        ]
+    )
+
+    st.dataframe(
+        matrix,
+        use_container_width=True
+    )
+
+    st.caption(
+        "Low: 1–4 | Medium: 5–9 | "
+        "High: 10–16 | Critical: 17–25"
+    )
+
+    incidents = get_incidents()
+
+    if not incidents.empty:
+
+        st.markdown(
+            "#### Recorded Incident Risks"
+        )
+
+        st.bar_chart(
+            incidents[
+                "risk_classification"
+            ].value_counts()
+        )
+
+# =====================================================
+# LOAD EACH GROUP MEMBER'S CODE
+# =====================================================
+
+def import_render(
+    filename,
+    function_name,
+    role
+):
+
+    if not (
+        BASE / (filename + ".py")
+    ).is_file():
+
+        return False
+
+    try:
+
+        module = importlib.import_module(
+            filename
+        )
+
+        render_function = getattr(
+            module,
+            function_name,
+            None
+        )
+
+        if not callable(render_function):
+
+            st.warning(
+                f"{filename}.py needs a "
+                f"{function_name}(role) function."
+            )
+
+            return False
+
+        render_function(role)
+
+        return True
+
+    except Exception as error:
+
+        st.error(
+            f"Error in {filename}.py: {error}"
+        )
+
+        return False
+
+# =====================================================
+# LOAD WORKER SAFETY DATA
+# =====================================================
+
+def load_workers():
+
+    try:
+
+        module = importlib.import_module(
+            "person1_worker_safety_module"
+        )
+
+        return pd.DataFrame(
+            module.load_workers()
+        )
+
+    except (
+        ImportError,
+        AttributeError,
+        OSError,
+        ValueError
+    ):
+
+        for filename in [
+            "workers.csv",
+            "workers(1).csv"
+        ]:
+
+            path = BASE / filename
+
+            if path.is_file():
+
+                return pd.read_csv(path)
+
+    return None
+
+# =====================================================
+# LOAD EQUIPMENT INFORMATION
+# =====================================================
+
+def load_equipment():
+
+    try:
+
+        module = importlib.import_module(
+            "equipment_module"
+        )
+
+        data = pd.DataFrame(
+            module.prepare(
+                module.load_equipment()
+            )
+        )
+
+        alerts = module.generate_alerts(
+            data
+        )
+
+        stats = module.equipment_kpis(
+            data,
+            alerts
+        )
+
+        return data, stats
+
+    except (
+        ImportError,
+        AttributeError,
+        OSError,
+        ValueError,
+        TypeError,
+        KeyError
+    ):
+
+        return None, None
+
+# =====================================================
+# WORKER SAFETY MODULE
+# =====================================================
+
+def render_worker_page(role):
+
+    if import_render(
+        "person1_worker_safety_module",
+        "render_worker_safety",
+        role
+    ):
+        return
+
+    workers = load_workers()
+
+    st.subheader(
+        "👷 Worker Safety Monitoring"
+    )
+
+    if workers is None or workers.empty:
+
+        st.info(
+            "Upload person1_worker_safety_module.py "
+            "and workers.csv to display "
+            "worker safety records."
+        )
+
+        return
+
+    cols = st.columns(3)
+
+    cols[0].metric(
+        "Total Workers",
+        len(workers)
+    )
+
+    if "PPECompliance" in workers:
+
+        percentage = (
+            workers["PPECompliance"]
+            .astype(str)
+            .eq("Yes")
+            .mean() * 100
+        )
+
+        cols[1].metric(
+            "PPE Compliance",
+            f"{percentage:.1f}%"
+        )
+
+    if "FatigueLevel" in workers:
+
+        fatigue = pd.to_numeric(
+            workers["FatigueLevel"],
+            errors="coerce"
+        )
+
+        cols[2].metric(
+            "High Fatigue",
+            int((fatigue >= 4).sum())
+        )
+
+    st.dataframe(
+        workers,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.caption(
+        "The full worker safety forms and warnings "
+        "appear when the member's Python "
+        "module is installed."
+    )
+
+# =====================================================
+# EQUIPMENT MODULE
+# =====================================================
+
+def render_equipment_page(role):
+
+    if import_render(
+        "equipment_page",
+        "render_equipment_module",
+        role
+    ):
+        return
+
+    equipment, stats = load_equipment()
+
+    st.subheader(
+        "🚜 Equipment Monitoring"
+    )
+
+    if equipment is None:
+
+        st.info(
+            "Upload equipment_page.py, "
+            "equipment_module.py and "
+            "equipment_data.csv to display "
+            "equipment monitoring."
+        )
+
+        return
+
+    st.dataframe(
+        equipment,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    if stats:
+
+        st.write(
+            "**Equipment Summary:**",
+            stats
+        )
+
+# =====================================================
+# OPERATIONAL REPORTS
+# =====================================================
+
+def render_reports(role):
+
+    st.subheader(
+        "📥 Operational Reports"
+    )
+
+    if (
+        BASE / "person4_dashboard.py"
+    ).is_file():
+
+        if import_render(
+            "person4_dashboard",
+            "render_dashboard",
+            role
+        ):
+            return
+
+    st.info(
+        "Member 4 can upload person4_dashboard.py "
+        "for advanced analytics. "
+        "Basic reports are available below."
+    )
+
+    incidents = get_incidents()
+
+    st.download_button(
+        "Download Safety Incidents",
+        incidents.to_csv(index=False),
+        file_name="khwezi_incidents.csv",
+        mime="text/csv"
+    )
+
+    workers = load_workers()
+
+    if workers is not None:
+
+        st.download_button(
+            "Download Worker Records",
+            workers.to_csv(index=False),
+            file_name="khwezi_workers.csv",
+            mime="text/csv"
+        )
+
+    equipment, _ = load_equipment()
+
+    if equipment is not None:
+
+        st.download_button(
+            "Download Equipment Records",
+            equipment.to_csv(index=False),
+            file_name="khwezi_equipment.csv",
+            mime="text/csv"
+        )
+
+# =====================================================
+# ROLE-BASED NAVIGATION
+# =====================================================
+
+def pages_for(role):
+
+    pages = [
+        "View Dashboard"
+    ]
+
+    if role in SAFETY_ROLES:
+
+        pages.extend([
             "Worker Safety Logs",
             "Incident Reports",
             "Risk Matrix"
         ])
 
-    if tier in [
-        "Administrator",
-        "Mining Engineer",
-        "Maintenance Engineer",
-        "Manager"
-    ]:
-        choices.extend([
+    if role in EQUIPMENT_ROLES:
+
+        pages.extend([
             "Equipment Telemetry",
             "Equipment Database",
             "Condition Monitoring",
@@ -438,288 +1342,376 @@ def permitted_modules(tier):
             "Equipment Analysis"
         ])
 
-    choices.append("Operational Reports")
-
-    if tier == "Administrator":
-        choices.append("User Control Panel")
-
-    return choices
-
-
-# EQUIPMENT MONITORING CHART
-def render_equipment_chart():
-
-    df = st.session_state.get(
-        "equipment_data",
-        DEMO_EQUIPMENT
+    pages.append(
+        "Operational Reports"
     )
 
-    df = pd.DataFrame(df)
+    if role == "Administrator":
 
-    required = {"Equipment_ID", "Availability"}
-
-    if not required.issubset(df.columns):
-        st.info(
-            "Equipment data needs Equipment_ID "
-            "and Availability columns."
+        pages.append(
+            "User Control Panel"
         )
-        return
 
-    df["Availability"] = pd.to_numeric(
-        df["Availability"],
-        errors="coerce"
+    return pages
+
+# =====================================================
+# LOGIN INTERFACE
+# =====================================================
+
+def render_login():
+
+    show_banner()
+
+    st.subheader(
+        "🔐 Security & Access Control Gateway"
     )
 
-    df = df.dropna(subset=["Availability"])
+    st.warning(
+        "Demonstration login only. "
+        "Selecting a role does not "
+        "authenticate user identity."
+    )
 
-    if df.empty:
-        st.info("Equipment readings are not available yet.")
-        return
+    with st.form("login"):
 
-    if "Condition" not in df.columns:
-        df["Condition"] = "Operational"
-
-    if "Equipment" not in df.columns:
-        df["Equipment"] = df["Equipment_ID"]
-
-    with st.container(border=True):
-
-        st.markdown("**Equipment Availability (%)**")
-
-        chart = (
-            alt.Chart(df)
-            .mark_bar(
-                cornerRadiusTopLeft=4,
-                cornerRadiusTopRight=4
-            )
-            .encode(
-                x=alt.X(
-                    "Equipment_ID:N",
-                    title="Equipment ID",
-                    sort=None,
-                    axis=alt.Axis(labelAngle=0)
-                ),
-
-                y=alt.Y(
-                    "Availability:Q",
-                    title="Availability (%)",
-                    scale=alt.Scale(domain=[0, 100])
-                ),
-
-                color=alt.Color(
-                    "Condition:N",
-                    title="Equipment Condition",
-                    scale=alt.Scale(
-                        domain=[
-                            "Operational",
-                            "Attention",
-                            "Critical"
-                        ],
-                        range=[
-                            "#d9a435",
-                            "#ad7041",
-                            "#c54c43"
-                        ]
-                    )
-                ),
-
-                tooltip=[
-                    "Equipment_ID:N",
-                    "Equipment:N",
-                    "Availability:Q",
-                    "Condition:N"
-                ]
-            )
-            .properties(height=285)
+        staff_id = st.text_input(
+            "Staff Identification Number"
         )
 
-        st.altair_chart(
-            chart,
+        role = st.selectbox(
+            "Select Clearance Group",
+            [
+                "Administrator",
+                "Safety Officer",
+                "Mining Engineer",
+                "Maintenance Engineer",
+                "Manager"
+            ]
+        )
+
+        clicked = st.form_submit_button(
+            "Unlock Dashboard Interface"
+        )
+
+    if clicked:
+
+        if not staff_id.strip():
+
+            st.error(
+                "Staff Identification Number "
+                "is required."
+            )
+
+        else:
+
+            st.session_state.update(
+                auth_token=True,
+                id_tag=staff_id.strip(),
+                tier=role
+            )
+
+            st.rerun()
+
+# =====================================================
+# MAIN DASHBOARD
+# =====================================================
+
+def render_dashboard():
+
+    incidents = get_incidents()
+
+    workers = load_workers()
+
+    equipment, stats = load_equipment()
+
+    st.markdown(
+        '<div class="mine-section">'
+        '📊 Central Monitoring Dashboard'
+        '</div>',
+        unsafe_allow_html=True
+    )
+
+    a, b, c, d = st.columns(4)
+
+    a.metric(
+        "Total Workers",
+        len(workers)
+        if workers is not None
+        else "No data"
+    )
+
+    b.metric(
+        "Safety Incidents",
+        len(incidents)
+    )
+
+    availability = (
+        stats.get("avg_availability")
+        if isinstance(stats, dict)
+        else None
+    )
+
+    c.metric(
+        "Equipment Availability",
+        f"{float(availability):.1f}%"
+        if availability is not None
+        else "No data"
+    )
+
+    d.metric(
+        "Critical Equipment Alerts",
+        stats.get(
+            "critical_alerts",
+            "No data"
+        )
+        if isinstance(stats, dict)
+        else "No data"
+    )
+
+    st.markdown(
+        '<div class="guide-banner">'
+        '💡 Use the sidebar to view '
+        'each group member’s work.'
+        '</div>',
+        unsafe_allow_html=True
+    )
+
+    # SAFETY INCIDENT SUMMARY
+
+    st.markdown(
+        '<div class="mine-section">'
+        '🦺 Safety Incident Overview'
+        '</div>',
+        unsafe_allow_html=True
+    )
+
+    x, y, z = st.columns(3)
+
+    x.metric(
+        "Near Misses",
+        int(
+            incidents["category"]
+            .astype(str)
+            .str.casefold()
+            .eq("near miss")
+            .sum()
+        )
+    )
+
+    y.metric(
+        "High-Risk Incidents",
+        int(
+            incidents["risk_classification"]
+            .eq("High")
+            .sum()
+        )
+    )
+
+    z.metric(
+        "Critical-Risk Incidents",
+        int(
+            incidents["risk_classification"]
+            .eq("Critical")
+            .sum()
+        )
+    )
+
+    with st.expander(
+        "Preview Safety Incident Records"
+    ):
+
+        st.dataframe(
+            incidents.head(10),
+            hide_index=True,
             use_container_width=True
         )
 
+    # EQUIPMENT CHART
 
-# MAIN DASHBOARD WITH LEFT NAVIGATION
-def render_main_interface():
+    if equipment is not None:
 
-    tag = st.session_state["id_tag"]
-    tier = st.session_state["tier"]
+        if {
+            "Equipment_ID",
+            "Availability"
+        }.issubset(equipment.columns):
 
-    # LEFT SIDEBAR
+            st.markdown(
+                '<div class="mine-section">'
+                '🚜 Equipment Monitoring Analysis'
+                '</div>',
+                unsafe_allow_html=True
+            )
+
+            equipment["Availability"] = (
+                pd.to_numeric(
+                    equipment["Availability"],
+                    errors="coerce"
+                )
+            )
+
+            chart = (
+                alt.Chart(
+                    equipment.dropna(
+                        subset=["Availability"]
+                    )
+                )
+                .mark_bar()
+                .encode(
+                    x="Equipment_ID:N",
+
+                    y=alt.Y(
+                        "Availability:Q",
+                        scale=alt.Scale(
+                            domain=[0, 100]
+                        )
+                    ),
+
+                    tooltip=[
+                        "Equipment_ID:N",
+                        "Availability:Q"
+                    ]
+                )
+                .properties(
+                    height=280
+                )
+            )
+
+            st.altair_chart(
+                chart,
+                use_container_width=True
+            )
+
+    st.caption(
+        "Demonstration data and local records. "
+        "Not live mine telemetry."
+    )
+
+# =====================================================
+# MAIN APPLICATION INTERFACE
+# =====================================================
+
+def render_main():
+
+    role = st.session_state["tier"]
+
+    # LEFT SIDEBAR NAVIGATION
+
     with st.sidebar:
 
-        st.markdown("## ⛏️ Navigation Menu")
-
-        st.write(f"**User:** {tag}")
-        st.write(f"**Role:** {tier}")
-
         st.markdown(
-            "<div style='height:68px'></div>",
-            unsafe_allow_html=True
+            "## ⛏️ Navigation Menu"
+        )
+
+        st.write(
+            f"**User:** "
+            f"{st.session_state['id_tag']}"
+        )
+
+        st.write(
+            f"**Role:** {role}"
         )
 
         selected = st.selectbox(
             "Select Function",
-            permitted_modules(tier)
-        )
-
-        st.markdown(
-            "<div style='height:50px'></div>",
-            unsafe_allow_html=True
+            pages_for(role)
         )
 
         if st.button("Log Out"):
 
-            st.session_state["auth_token"] = False
-            st.session_state.pop("id_tag", None)
-            st.session_state.pop("tier", None)
+            for name in [
+                "auth_token",
+                "id_tag",
+                "tier"
+            ]:
+
+                st.session_state.pop(
+                    name,
+                    None
+                )
 
             st.rerun()
 
-        st.caption("KHWEZI MINING • COAL OPERATIONS")
+        st.caption(
+            "KHWEZI MINING • COAL OPERATIONS"
+        )
 
-    # COAL MINE BANNER
-    st.markdown("""
-    <div class="mine-hero">
-        <div class="mine-eyebrow">
-            ⛏️ KHWEZI MINING • COAL OPERATIONS
-        </div>
-        <div class="mine-title">
-            Health, Safety &amp; Equipment Portal
-        </div>
-        <div class="mine-subtitle">
-            Operational monitoring • Worker safety • Mine equipment
-        </div>
-    </div>
+    # MAIN BANNER
 
-    <div class="mine-school">
-        School of Mining Engineering |
-        University of the Witwatersrand
-    </div>
-
-    <div class="mine-intro">
-        A centralized digital monitoring platform
-        for operational decision-making.
-    </div>
-    """, unsafe_allow_html=True)
+    show_banner()
 
     st.divider()
 
-    # MAIN DASHBOARD
+    # CALL DASHBOARD
+
     if selected == "View Dashboard":
 
-        st.markdown(
-            '<div class="mine-section">'
-            '📊 Central Monitoring Dashboard'
-            '</div>',
-            unsafe_allow_html=True
-        )
+        render_dashboard()
 
-        data, stats = load_equipment_summary()
-        worker_count = load_worker_count()
-        kpis = {
-            "total_workers": worker_count if worker_count is not None else "No data",
-            "safety_incidents": "Not connected",
-            "equipment_availability": (f"{stats['avg_availability']:.1f}%" if stats else "No data"),
-            "critical_alerts": (stats["critical_alerts"] if stats else "No data"),
-        }
-        if data is not None:
-            st.session_state["equipment_data"] = data
+    # CALL WORKER SAFETY
 
-        col1, col2, col3, col4 = st.columns(4)
+    elif selected == "Worker Safety Logs":
 
-        with col1:
-            st.metric(
-                "Total Workers",
-                kpis["total_workers"],
-                "Active"
-            )
+        render_worker_page(role)
 
-        with col2:
-            st.metric(
-                "Safety Incidents",
-                kpis["safety_incidents"],
-            )
+    # CALL SAFETY INCIDENTS
 
-        with col3:
-            st.metric(
-                "Equipment Availability",
-                kpis["equipment_availability"]
-            )
+    elif selected == "Incident Reports":
 
-        with col4:
-            st.metric(
-                "Critical Alerts",
-                kpis["critical_alerts"],
-            )
+        render_incident_reports(role)
 
-        st.markdown(
-            '<div class="guide-banner">'
-            '💡 Use the sidebar navigation menu '
-            'to access specific system modules.'
-            '</div>',
-            unsafe_allow_html=True
-        )
+    # CALL RISK ASSESSMENT
 
-        st.markdown(
-            '<div class="mine-section">'
-            '🚜 Equipment Monitoring Analysis'
-            '</div>',
-            unsafe_allow_html=True
-        )
+    elif selected == "Risk Matrix":
 
-        if data is not None:
-            render_equipment_chart()
-        else:
-            st.info("Equipment data will appear here when equipment_module.py and equipment_data.csv are available.")
+        render_risk_assessment(role)
 
-        # ORIGINAL SYSTEM KPI VALUES
-        with st.expander(
-            "Original System Performance Indicators"
+    # CALL EQUIPMENT MODULE
+
+    elif selected in {
+
+        "Equipment Telemetry",
+        "Equipment Database",
+        "Condition Monitoring",
+        "Equipment Alerts",
+        "Maintenance Schedules",
+        "Equipment Analysis"
+
+    }:
+
+        render_equipment_page(role)
+
+    # CALL OPERATIONAL REPORTS
+
+    elif selected == "Operational Reports":
+
+        render_reports(role)
+
+    # CALL USER CONTROL
+
+    elif selected == "User Control Panel":
+
+        if not import_render(
+            "user_control",
+            "render_user_control",
+            role
         ):
 
-            a, b, c = st.columns(3)
-
-            a.metric(
-                "System Operational Status",
-                "Online",
-                "Demo"
+            st.info(
+                "Upload user_control.py "
+                "to enable user management."
             )
 
-            b.metric(
-                "Data Feed Latency",
-                "12 ms",
-                "Sample"
-            )
+# =====================================================
+# APPLICATION STARTUP
+# =====================================================
 
-            c.metric(
-                "Active Safety Compliance",
-                "96.5%",
-                "+1.1%"
-            )
+if st.session_state.get(
+    "auth_token",
+    False
+):
 
-        st.caption(
-            "Dashboard and equipment values are "
-            "demonstration data until connected "
-            "to actual mine records."
-        )
+    render_main()
 
-    # -----------------------------------------------------------------
-    # INTEGRATION POINT: each member supplies a callable Python module.
-    # This handles safety, incidents, risks, equipment, and analytics.
-    # -----------------------------------------------------------------
-    elif selected in MEMBER_MODULES:
-        render_member_page(selected, tier)
-
-    else:
-        st.warning(f"No page has been configured for: {selected}")
-
-
-# Only app.py owns page configuration, session routing and sidebar.
-if "auth_token" not in st.session_state:
-    st.session_state["auth_token"] = False
-
-if not st.session_state["auth_token"]:
-    render_access_gate()
 else:
-    render_main_interface()
+
+    render_login()
