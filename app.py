@@ -56,7 +56,7 @@ FIELDS = [
 
 st.set_page_config(
     page_title="KHWEZI MINING | Health, Safety & Equipment",
-    page_icon="⛏️",
+    page_icon=" ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -494,7 +494,7 @@ def render_incident_reports(role):
         return
 
     st.subheader(
-        "🦺 Safety Incident Reporting and Analysis"
+        " Safety Incident Reporting and Analysis"
     )
 
     st.caption(
@@ -898,7 +898,7 @@ def render_risk_assessment(role):
         return
 
     st.subheader(
-        "⚠️ Mining Risk Assessment"
+        " Mining Risk Assessment"
     )
 
     st.caption(
@@ -1191,7 +1191,7 @@ def generate_worker_warnings(row):
 
 
 def render_worker_page(role):
-    st.title("👷 Worker Health and Safety Monitoring")
+    st.title(" Worker Health and Safety Monitoring")
     if role not in ROLE_ACCESS:
         st.error("Access denied. Your role does not have permission to view worker safety data.")
         return
@@ -1274,7 +1274,7 @@ def render_equipment_page(role):
     equipment, stats = load_equipment()
 
     st.subheader(
-        "🚜 Equipment Monitoring"
+        " Equipment Monitoring"
     )
 
     if equipment is None:
@@ -1308,7 +1308,7 @@ def render_equipment_page(role):
 def render_reports(role):
 
     st.subheader(
-        "📥 Operational Reports"
+        " Operational Reports"
     )
 
     if (
@@ -1409,7 +1409,7 @@ def render_login():
     show_banner()
 
     st.subheader(
-        "🔐 Security & Access Control Gateway"
+        " Security & Access Control Gateway"
     )
 
     st.warning(
@@ -1472,7 +1472,7 @@ def render_dashboard():
 
     st.markdown(
         '<div class="mine-section">'
-        '📊 Central Monitoring Dashboard'
+        ' Central Monitoring Dashboard'
         '</div>',
         unsafe_allow_html=True
     )
@@ -1526,7 +1526,7 @@ def render_dashboard():
 
     st.markdown(
         '<div class="mine-section">'
-        '🦺 Safety Incident Overview'
+        ' Safety Incident Overview'
         '</div>',
         unsafe_allow_html=True
     )
@@ -1583,7 +1583,7 @@ def render_dashboard():
 
             st.markdown(
                 '<div class="mine-section">'
-                '🚜 Equipment Monitoring Analysis'
+                ' Equipment Monitoring Analysis'
                 '</div>',
                 unsafe_allow_html=True
             )
@@ -1645,7 +1645,7 @@ def render_main():
     with st.sidebar:
 
         st.markdown(
-            "## ⛏️ Navigation Menu"
+            "## Navigation Menu"
         )
 
         st.write(
