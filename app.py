@@ -57,9 +57,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# =====================================================
 # COAL MINING COLOURS AND DESIGN
-# =====================================================
+
 
 st.markdown("""
 <style>
