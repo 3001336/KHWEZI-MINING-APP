@@ -227,9 +227,6 @@ if image_path.exists():
 else:
     st.warning("Mining sunset image not found.")
 
-
-# MAIN MINING BANNER
-  
 # MAIN MINING BANNER
 
 def show_banner():
@@ -237,7 +234,7 @@ def show_banner():
         """
 <div class="mine-hero">
 <div class="mine-eyebrow">
-⛏️ KHWEZI MINING • COAL OPERATIONS
+
 </div>
 <div class="mine-title">
 Health, Safety &amp; Equipment Portal
@@ -1244,8 +1241,6 @@ def render_worker_page(role):
             st.rerun()
 
 # EQUIPMENT MODULE
-
-
 def render_equipment_page(role):
 
     if import_render(
@@ -1269,8 +1264,8 @@ def render_equipment_page(role):
             "equipment_data.csv to display "
             "equipment monitoring."
         )
-
-        return
+       
+     return
 
     st.dataframe(
         equipment,
@@ -1496,7 +1491,7 @@ def render_dashboard():
 
     st.markdown(
         '<div class="guide-banner">'
-        '💡 Use the sidebar to view '
+        ' Use the sidebar to view '
         'each group member’s work.'
         '</div>',
         unsafe_allow_html=True
@@ -1656,7 +1651,7 @@ def render_main():
             st.rerun()
 
         st.caption(
-            "KHWEZI MINING • COAL OPERATIONS"
+            "KHWEZI MINING "
         )
 
     # MAIN BANNER
