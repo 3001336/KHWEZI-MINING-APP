@@ -115,9 +115,13 @@ if not st.session_state["auth_token"]:
 else:
     render_main_interface()
 
+
 import streamlit as st
 import pandas as pd
 import altair as alt
+import equipment_module as em
+from equipment_page import render_equipment_module
+
 
 # KHWEZI MINING - COAL MINE DASHBOARD
 
