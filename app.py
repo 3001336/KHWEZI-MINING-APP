@@ -9,9 +9,7 @@ import sqlite3
 from pathlib import Path
 from contextlib import contextmanager
 
-# =====================================================
 # KHWEZI MINING - COMPLETE APPLICATION
-# =====================================================
 
 BASE = Path(__file__).resolve().parent
 DATABASE = BASE / "safety_incidents.db"
@@ -50,9 +48,7 @@ FIELDS = [
     "risk_classification"
 ]
 
-# =====================================================
 # STREAMLIT PAGE CONFIGURATION
-# =====================================================
 
 st.set_page_config(
     page_title="KHWEZI MINING | Health, Safety & Equipment",
@@ -176,9 +172,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# =====================================================
 # OPEN PIT MINING SUNSET BACKGROUND
-# =====================================================
 
 image_path = BASE / "mining_sunset.jpg"
 
@@ -205,9 +199,7 @@ if image_path.is_file():
         unsafe_allow_html=True
     )
 
-# =====================================================
 # MAIN MINING BANNER
-# =====================================================
 
 def show_banner():
 
@@ -245,9 +237,7 @@ def show_banner():
         unsafe_allow_html=True
     )
 
-# =====================================================
 # RISK ASSESSMENT CALCULATION
-# =====================================================
 
 def assess_risk(likelihood, consequence):
 
@@ -280,9 +270,7 @@ def assess_risk(likelihood, consequence):
 
     return score, classification
 
-# =====================================================
 # DATABASE CONNECTION
-# =====================================================
 
 @contextmanager
 def connect_db():
@@ -303,9 +291,7 @@ def connect_db():
     finally:
         connection.close()
 
-# =====================================================
 # CREATE SAFETY INCIDENT DATABASE
-# =====================================================
 
 def setup_incidents():
 
@@ -428,9 +414,7 @@ def setup_incidents():
 
             existing.add(key)
 
-# =====================================================
 # LOAD ALL INCIDENT RECORDS
-# =====================================================
 
 def get_incidents():
 
@@ -449,9 +433,7 @@ def get_incidents():
 
     return records
 
-# =====================================================
 # SAVE NEW INCIDENT
-# =====================================================
 
 def save_incident(record):
 
@@ -478,9 +460,7 @@ def save_incident(record):
             [record[field] for field in FIELDS]
         )
 
-# =====================================================
 # SAFETY INCIDENT REPORTING PAGE
-# =====================================================
 
 def render_incident_reports(role):
 
@@ -544,10 +524,9 @@ def render_incident_reports(role):
         "Charts & Reports"
     ])
 
-    # -------------------------------------------------
+    
     # VIEW AND FILTER INCIDENTS
-    # -------------------------------------------------
-
+  
     with tab1:
 
         search = st.text_input(
@@ -640,9 +619,7 @@ def render_incident_reports(role):
             mime="text/csv"
         )
 
-    # -------------------------------------------------
     # ADD NEW SAFETY INCIDENT
-    # -------------------------------------------------
 
     with tab2:
 
@@ -823,9 +800,7 @@ def render_incident_reports(role):
 
                 st.rerun()
 
-    # -------------------------------------------------
     # INCIDENT ANALYSIS
-    # -------------------------------------------------
 
     with tab3:
 
@@ -883,9 +858,7 @@ def render_incident_reports(role):
                 mime="text/csv"
             )
 
-# =====================================================
 # RISK ASSESSMENT PAGE
-# =====================================================
 
 def render_risk_assessment(role):
 
@@ -1013,9 +986,7 @@ def render_risk_assessment(role):
             ].value_counts()
         )
 
-# =====================================================
 # LOAD EACH GROUP MEMBER'S CODE
-# =====================================================
 
 def import_render(
     filename,
@@ -1062,9 +1033,7 @@ def import_render(
 
         return False
 
-# =====================================================
 # LOAD WORKER SAFETY DATA
-# =====================================================
 
 def load_workers():
 
@@ -1099,9 +1068,7 @@ def load_workers():
 
     return None
 
-# =====================================================
 # LOAD EQUIPMENT INFORMATION
-# =====================================================
 
 def load_equipment():
 
@@ -1139,9 +1106,8 @@ def load_equipment():
 
         return None, None
 
-# =====================================================
 # PERSON 1 — FULL WORKER HEALTH AND SAFETY FEATURE
-# =====================================================
+
 WORKERS_FILE = BASE / "workers.csv"
 COLUMNS = ["WorkerID", "Department", "JobRole", "Shift", "PPECompliance",
            "SafetyTraining", "FatigueLevel", "SafetyObservations", "NearMisses",
@@ -1258,9 +1224,8 @@ def render_worker_page(role):
             st.success("Worker safety record saved successfully.")
             st.rerun()
 
-# =====================================================
 # EQUIPMENT MODULE
-# =====================================================
+
 
 def render_equipment_page(role):
 
@@ -1301,9 +1266,8 @@ def render_equipment_page(role):
             stats
         )
 
-# =====================================================
 # OPERATIONAL REPORTS
-# =====================================================
+
 
 def render_reports(role):
 
@@ -1359,9 +1323,8 @@ def render_reports(role):
             mime="text/csv"
         )
 
-# =====================================================
 # ROLE-BASED NAVIGATION
-# =====================================================
+
 
 def pages_for(role):
 
@@ -1400,9 +1363,8 @@ def pages_for(role):
 
     return pages
 
-# =====================================================
 # LOGIN INTERFACE
-# =====================================================
+
 
 def render_login():
 
@@ -1458,9 +1420,8 @@ def render_login():
 
             st.rerun()
 
-# =====================================================
 # MAIN DASHBOARD
-# =====================================================
+
 
 def render_dashboard():
 
@@ -1632,9 +1593,7 @@ def render_dashboard():
         "Not live mine telemetry."
     )
 
-# =====================================================
 # MAIN APPLICATION INTERFACE
-# =====================================================
 
 def render_main():
 
@@ -1747,9 +1706,7 @@ def render_main():
                 "to enable user management."
             )
 
-# =====================================================
 # APPLICATION STARTUP
-# =====================================================
 
 if st.session_state.get(
     "auth_token",
