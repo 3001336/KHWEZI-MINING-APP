@@ -1,0 +1,23 @@
+incident_date,incident_time,shift,location,department,incident_type,category,severity,injury_status,lost_time_status,cause,corrective_action,incident_status,likelihood,consequence,risk_score,risk_classification
+2026-01-08,06:45,Day,Warehouse A,Logistics,Slip and fall,Injury,Moderate,Yes,Yes,Wet floor near loading bay,Install drainage mat and wet-floor signage,Closed,4,3,12,High
+2026-01-19,14:20,Afternoon,Production Line 2,Manufacturing,Machine guarding,Unsafe Act,Minor,No,No,Guard removed during maintenance and not refitted,Retrain staff on lock-out/tag-out procedure,Closed,3,3,9,Medium
+2026-02-03,22:10,Night,Workshop,Maintenance,Electrical,Near Miss,Major,No,No,Exposed wiring on portable tool,Remove tool from service and inspect all portable tools,Closed,2,5,10,High
+2026-02-14,09:30,Day,Yard,Logistics,Forklift collision,Near Miss,Serious,No,No,Poor visibility at blind corner,Install convex mirrors and speed limit signs,Closed,3,4,12,High
+2026-02-27,11:05,Day,Laboratory,Quality Control,Chemical spill,Injury,Minor,Yes,No,Container not sealed properly,Introduce container checklist and spill kit training,Closed,3,2,6,Medium
+2026-03-09,03:15,Night,Production Line 1,Manufacturing,Manual handling,Injury,Moderate,Yes,Yes,Lifting heavy load without assistance,Provide lifting aids and manual handling training,Closed,4,3,12,High
+2026-03-21,13:40,Afternoon,Office Block,Administration,Trip hazard,Near Miss,Minor,No,No,Loose cable across walkway,Install cable covers and tidy workstations,Closed,2,1,2,Low
+2026-04-02,07:50,Day,Warehouse B,Logistics,Falling object,Near Miss,Major,No,No,Overloaded top shelf in racking,Enforce racking load limits and inspect weekly,Closed,3,5,15,High
+2026-04-17,16:25,Afternoon,Loading Bay,Logistics,PPE non-compliance,Unsafe Act,Minor,No,No,Safety boots not worn,Toolbox talk and spot PPE checks,Closed,4,2,8,Medium
+2026-05-05,10:15,Day,Workshop,Maintenance,Hot work,Injury,Serious,Yes,Yes,Welding sparks ignited nearby combustible material,Hot work permit system and fire watch,Closed,3,4,12,High
+2026-05-22,01:30,Night,Production Line 3,Manufacturing,Noise exposure,Unsafe Act,Minor,No,No,Hearing protection not worn in high-noise zone,Mark noise zones and issue ear protection,Closed,3,2,6,Medium
+2026-06-11,12:00,Day,Boiler Room,Maintenance,Pressure release,Near Miss,Critical,No,No,Faulty relief valve,Replace valve and add to inspection schedule,Under Review,3,5,15,High
+2026-06-28,15:35,Afternoon,Yard,Logistics,Vehicle reversing,Near Miss,Serious,No,No,No spotter during reversing,Assign banksman and install reverse alarms,Closed,4,4,16,High
+2026-07-13,08:20,Day,Production Line 2,Manufacturing,Machine entanglement,Injury,Major,Yes,Yes,Loose clothing near rotating shaft,Redesign guarding and enforce dress code,Under Review,4,4,16,High
+2026-07-30,19:45,Night,Warehouse A,Logistics,Slip and fall,Injury,Minor,Yes,No,Oil leak from pallet jack,Daily equipment inspection and leak repair,Closed,3,2,6,Medium
+2026-08-12,09:10,Day,Laboratory,Quality Control,Chemical exposure,Injury,Moderate,Yes,No,Fume cupboard airflow insufficient,Service fume cupboards and monitor airflow,Closed,3,3,9,Medium
+2026-08-26,14:55,Afternoon,Office Block,Administration,Fire alarm failure,Near Miss,Serious,No,No,Alarm panel fault during drill,Repair panel and increase test frequency,Closed,2,5,10,High
+2026-09-09,05:40,Day,Warehouse B,Logistics,Forklift tip-over,Injury,Critical,Yes,Yes,Excessive speed with raised load,Speed governors and operator refresher training,Under Review,4,5,20,Critical
+2026-09-24,21:15,Night,Production Line 1,Manufacturing,Working at height,Unsafe Act,Serious,No,No,Harness not attached while on platform,Fall-protection audit and supervisor checks,Open,4,4,16,High
+2026-10-06,10:50,Day,Workshop,Maintenance,Dust inhalation,Unsafe Act,Minor,No,No,Respirator not used during grinding,Respirator fit-testing and signage,Open,2,2,4,Low
+2026-10-15,13:05,Afternoon,Yard,Logistics,Pedestrian near miss,Near Miss,Major,No,No,No segregated walkway between pedestrians and vehicles,Paint walkways and install barriers,Open,3,4,12,High
+2026-10-22,07:30,Day,Production Line 3,Manufacturing,Electrical,Near Miss,Critical,No,No,Damaged isolator switch,Isolate machine and replace switch,Open,5,4,20,Critical
