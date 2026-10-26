@@ -47,7 +47,6 @@ FIELDS = [
     "risk_score",
     "risk_classification"
 ]
-
 # STREAMLIT PAGE CONFIGURATION
 
 st.set_page_config(
@@ -199,40 +198,30 @@ if image_path.is_file():
     )
 
 # MAIN MINING BANNER
+  
+# MAIN MINING BANNER
 
 def show_banner():
-
     st.markdown(
         """
-        <div class="mine-hero">
-
-            <div class="mine-eyebrow">
-                ⛏️ KHWEZI MINING • COAL OPERATIONS
-            </div>
-
-            <div class="mine-title">
-                Health, Safety &amp; Equipment Portal
-            </div>
-
-            <div class="mine-subtitle">
-                Operational Monitoring •
-                Worker Safety • Mine Equipment
-            </div>
-
-        </div>
-
-        <div style="font-weight:700">
-            School of Mining Engineering |
-            University of the Witwatersrand
-        </div>
-
-        <p>
-            <i>
-                A centralized digital monitoring platform
-                for operational decision-making.
-            </i>
-        </p>
-        """,
+<div class="mine-hero">
+<div class="mine-eyebrow">
+⛏️ KHWEZI MINING • COAL OPERATIONS
+</div>
+<div class="mine-title">
+Health, Safety &amp; Equipment Portal
+</div>
+<div class="mine-subtitle">
+Operational Monitoring • Worker Safety • Mine Equipment
+</div>
+</div>
+<div style="font-weight:700">
+School of Mining Engineering | University of the Witwatersrand
+</div>
+<p><i>
+A centralized digital monitoring platform for operational decision-making.
+</i></p>
+""",
         unsafe_allow_html=True
     )
 
