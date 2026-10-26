@@ -104,18 +104,44 @@ st.markdown("""
 [data-testid="stAppViewContainer"] {
     background:
         linear-gradient(
-            110deg,
-            #f7f3eb,
-            #fffdfa 50%,
-            #edf1ee
-        );
-}
+ 
+# KHWEZI MINING - MAIN SUNSET BANNER
 
-[data-testid="stHeader"] {
-    background: rgba(250,248,244,.92);
-}
+def show_banner():
 
-[data-testid="stMain"] .block-container {
+    st.markdown(
+        """
+        <div class="mine-hero">
+
+            <div class="mine-eyebrow">
+                ⛏️ KHWEZI MINING • COAL OPERATIONS
+            </div>
+
+            <div class="mine-title">
+                Health, Safety &amp; Equipment Portal
+            </div>
+
+            <div class="mine-subtitle">
+                Operational Monitoring • Worker Safety • Mine Equipment
+            </div>
+
+        </div>
+
+        <div class="mine-school">
+            School of Mining Engineering |
+            University of the Witwatersrand
+        </div>
+
+        <div class="mine-intro">
+            A centralized digital monitoring platform
+            for operational decision-making.
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+ 
+ [data-testid="stMain"] .block-container {
     max-width: 1400px;
     padding-top: 1.6rem;
 }
