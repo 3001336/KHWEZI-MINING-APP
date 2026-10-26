@@ -1,4 +1,4 @@
-
+  
 import streamlit as st
 import pandas as pd
 import altair as alt
@@ -1087,7 +1087,8 @@ def load_workers():
 
         for filename in [
             "workers.csv",
-            "workers(1).csv"
+            "workers(1).csv",
+            "workers(2).csv"
         ]:
 
             path = BASE / filename
@@ -1139,78 +1140,123 @@ def load_equipment():
         return None, None
 
 # =====================================================
-# WORKER SAFETY MODULE
+# PERSON 1 — FULL WORKER HEALTH AND SAFETY FEATURE
 # =====================================================
+WORKERS_FILE = BASE / "workers.csv"
+COLUMNS = ["WorkerID", "Department", "JobRole", "Shift", "PPECompliance",
+           "SafetyTraining", "FatigueLevel", "SafetyObservations", "NearMisses",
+           "PreviousIncidents"]
+ROLE_ACCESS = {"Administrator", "Safety Officer", "Mining Engineer", "Manager"}
+
+
+def load_worker_records():
+    if not WORKERS_FILE.exists():
+        return pd.DataFrame(columns=COLUMNS)
+    df = pd.read_csv(WORKERS_FILE, dtype={"WorkerID": str})
+    for c in COLUMNS:
+        if c not in df.columns:
+            raise ValueError(f"workers.csv is missing column: {c}")
+    for c in ("FatigueLevel", "SafetyObservations", "NearMisses", "PreviousIncidents"):
+        df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
+    return df
+
+
+def save_worker_records(df):
+    df.to_csv(WORKERS_FILE, index=False)
+
+
+def classify_worker_risk(ppe, training, fatigue, near_misses, previous_incidents):
+    score = 0
+    if ppe == "No": score += 4
+    if training == "No": score += 3
+    if fatigue == 4: score += 2
+    elif fatigue == 5: score += 4
+    if near_misses >= 2: score += 2
+    elif near_misses == 1: score += 1
+    if previous_incidents >= 1: score += 1
+    return "High" if score >= 8 else "Medium" if score >= 4 else "Low"
+
+
+def generate_worker_warnings(row):
+    warnings = []
+    if row["PPECompliance"] == "No": warnings.append("HIGH: PPE non-compliance detected.")
+    if row["SafetyTraining"] == "No": warnings.append("WARNING: Safety training is incomplete.")
+    if int(row["FatigueLevel"]) == 5: warnings.append("CRITICAL: Very high fatigue level detected.")
+    elif int(row["FatigueLevel"]) == 4: warnings.append("WARNING: High fatigue level detected.")
+    if int(row["NearMisses"]) >= 2: warnings.append("WARNING: Multiple near misses recorded.")
+    elif int(row["NearMisses"]) == 1: warnings.append("NOTICE: A near miss has been recorded.")
+    if int(row["SafetyObservations"]) >= 3: warnings.append("NOTICE: Several safety observations require review.")
+    if int(row["PreviousIncidents"]) >= 2: warnings.append("WARNING: Worker has multiple previous incidents.")
+    return warnings or ["NORMAL: No immediate worker safety warning identified."]
+
 
 def render_worker_page(role):
-
-    if import_render(
-        "person1_worker_safety_module",
-        "render_worker_safety",
-        role
-    ):
+    st.title("👷 Worker Health and Safety Monitoring")
+    if role not in ROLE_ACCESS:
+        st.error("Access denied. Your role does not have permission to view worker safety data.")
         return
+    workers = load_worker_records()
+    if not workers.empty:
+        workers["RiskLevel"] = workers.apply(lambda r: classify_worker_risk(
+            r["PPECompliance"], r["SafetyTraining"], int(r["FatigueLevel"]),
+            int(r["NearMisses"]), int(r["PreviousIncidents"])), axis=1)
+    count = len(workers)
+    ppe = round(100 * (workers["PPECompliance"] == "Yes").sum() / count, 1) if count else 0
+    a,b,c,d,e = st.columns(5)
+    a.metric("Total Workers", count)
+    b.metric("PPE Compliance", f"{ppe:.1f}%")
+    c.metric("High Fatigue", int((workers["FatigueLevel"] >= 4).sum()))
+    d.metric("Training Incomplete", int((workers["SafetyTraining"] == "No").sum()))
+    e.metric("Near Misses", int(workers["NearMisses"].sum()))
 
-    workers = load_workers()
+    st.subheader("Worker Safety Records")
+    st.dataframe(workers, use_container_width=True, hide_index=True)
+    st.subheader("Check Individual Worker")
+    if count:
+        selected = st.selectbox("Select Worker ID", workers["WorkerID"].astype(str).tolist())
+        row = workers.loc[workers["WorkerID"].astype(str) == selected].iloc[0]
+        st.write(f"Department: **{row['Department']}**")
+        st.write(f"Job Role: **{row['JobRole']}**")
+        st.write(f"Shift: **{row['Shift']}**")
+        st.write(f"Risk Level: **{row['RiskLevel']}**")
+        for warning in generate_worker_warnings(row):
+            if warning.startswith(("CRITICAL", "HIGH")): st.error(warning)
+            elif warning.startswith("WARNING"): st.warning(warning)
+            elif warning.startswith("NOTICE"): st.info(warning)
+            else: st.success(warning)
+    else:
+        st.info("No workers added yet.")
 
-    st.subheader(
-        "👷 Worker Safety Monitoring"
-    )
-
-    if workers is None or workers.empty:
-
-        st.info(
-            "Upload person1_worker_safety_module.py "
-            "and workers.csv to display "
-            "worker safety records."
-        )
-
-        return
-
-    cols = st.columns(3)
-
-    cols[0].metric(
-        "Total Workers",
-        len(workers)
-    )
-
-    if "PPECompliance" in workers:
-
-        percentage = (
-            workers["PPECompliance"]
-            .astype(str)
-            .eq("Yes")
-            .mean() * 100
-        )
-
-        cols[1].metric(
-            "PPE Compliance",
-            f"{percentage:.1f}%"
-        )
-
-    if "FatigueLevel" in workers:
-
-        fatigue = pd.to_numeric(
-            workers["FatigueLevel"],
-            errors="coerce"
-        )
-
-        cols[2].metric(
-            "High Fatigue",
-            int((fatigue >= 4).sum())
-        )
-
-    st.dataframe(
-        workers,
-        use_container_width=True,
-        hide_index=True
-    )
-
-    st.caption(
-        "The full worker safety forms and warnings "
-        "appear when the member's Python "
-        "module is installed."
-    )
+    st.subheader("Add Worker Safety Record")
+    with st.form("add_worker_form"):
+        x,y,z = st.columns(3)
+        wid = x.text_input("Worker ID")
+        department = y.selectbox("Department", ["Mining", "Engineering", "Safety", "Plant", "Other"])
+        job = z.text_input("Job Role")
+        x,y,z = st.columns(3)
+        shift = x.selectbox("Shift", ["Day", "Night"])
+        ppe_ok = y.selectbox("PPE Compliant?", ["Yes", "No"])
+        training = z.selectbox("Safety Training Complete?", ["Yes", "No"])
+        x,y,z = st.columns(3)
+        fatigue = x.slider("Fatigue Level", 1, 5, 2)
+        observations = y.number_input("Safety Observations", min_value=0, step=1)
+        near_misses = z.number_input("Near Misses", min_value=0, step=1)
+        previous = st.number_input("Previous Incidents", min_value=0, step=1)
+        submitted = st.form_submit_button("Save Worker Record")
+    if submitted:
+        wid = wid.strip()
+        if not wid:
+            st.error("Worker ID cannot be empty.")
+        elif wid in workers["WorkerID"].astype(str).values:
+            st.error("Worker ID already exists.")
+        elif not job.strip():
+            st.error("Job role cannot be empty.")
+        else:
+            record = pd.DataFrame([[wid, department, job.strip(), shift, ppe_ok,
+                                    training, fatigue, observations, near_misses, previous]], columns=COLUMNS)
+            save_worker_records(pd.concat([workers[COLUMNS], record], ignore_index=True))
+            st.success("Worker safety record saved successfully.")
+            st.rerun()
 
 # =====================================================
 # EQUIPMENT MODULE
