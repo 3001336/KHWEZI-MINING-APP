@@ -1256,16 +1256,10 @@ def render_equipment_page(role):
         " Equipment Monitoring"
     )
 
+   def render_equipment_page(role):
     if equipment is None:
-
-        st.info(
-            "Upload equipment_page.py, "
-            "equipment_module.py and "
-            "equipment_data.csv to display "
-            "equipment monitoring."
-        )
-       
-     return
+        st.warning("Equipment data not found.")
+        return
 
     st.dataframe(
         equipment,
